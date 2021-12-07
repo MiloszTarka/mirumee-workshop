@@ -1,10 +1,10 @@
 import Head from "next/head";
-// import { GetStaticProps } from "next";
-// import { useEffect, useState } from "react";
+import { GetStaticProps } from "next";
+import { useEffect, useState } from "react";
 
-// import { ProductFragment } from "../graphql/types";
-// import { Product } from "../components/Product";
-// import { fetchProducts } from "../graphql";
+import { ProductFragment } from "../graphql/types";
+import { Product } from "../components/Product";
+import { fetchProducts } from "../graphql";
 
 // Step 1: Create a Product component and use it
 
@@ -16,7 +16,21 @@ import Head from "next/head";
 
 // Step 11: Use Next.js features to boost the performance using getStaticProps (CSR vs SSR)
 
-export default function Home() {
+type Props ={
+  products: ProductFragment[];
+}
+export const getStaticProps: GetStaticProps<Props> = async(context) =>{
+  const res = await fetchProducts();
+  const mappedProducts = res.data.products?.edges.map((edge)=>edge.node) || [];
+  return {
+    props:{
+      products: mappedProducts
+    } 
+  }
+}
+
+export default function Home({products}: Props) {
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-2">
       <Head>
@@ -29,7 +43,17 @@ export default function Home() {
           Mirumee Workshop #1
         </h1>
         <p className="mt-3 text-2xl">Product List</p>
-        <div className="flex flex-wrap items-center justify-around max-w-4xl mt-6 sm:w-full"></div>
+        <div className="flex flex-wrap items-center justify-around max-w-4xl mt-6 sm:w-full">
+          {products.map((product)=> (
+            <div className="p-2">
+              <Product
+                key={product.id}
+                name={product.name}
+                thumbnailUrl={product.thumbnail?.url || ""}
+              />
+            </div>
+          ))}
+        </div>
       </main>
     </div>
   );
